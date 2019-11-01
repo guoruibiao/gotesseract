@@ -35,7 +35,6 @@ func NewTesseractHelper(watchpath string) (*TesseractHelper){
 	}
 }
 
-// 懒得改名了 其实也没必要有返回值
 func (this *TesseractHelper) getNewlyFilename() (string, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -43,7 +42,7 @@ func (this *TesseractHelper) getNewlyFilename() (string, error) {
 	}
 	defer watcher.Close()
 
-	// 为了让主进程一直等待，实现go协程的运行流程。
+	// 为了让主进程一直等待，实现go携程的运行流程。
 	done := make(chan bool)
 	go func() {
 		for {
@@ -60,8 +59,8 @@ func (this *TesseractHelper) getNewlyFilename() (string, error) {
 			    	log.Println("newly add file: ", event.Name)
 			    	// 识别处理
 			    	filename := event.Name[8:]
-				    // 可以考虑用 go func(){}()的形式，不过好像没啥必要
 			    	this.doTesseractInspect(filename)
+			    	//this.pbcopy()
 			    	fmt.Println("识别结果为: ", this.output())
 				}
 			case err, ok := <-watcher.Errors:
@@ -80,6 +79,11 @@ func (this *TesseractHelper) getNewlyFilename() (string, error) {
 	// 如上，让主进程一直等待，不至于运行完就退出了。
 	<-done
 	return "/tmp/Xnip2019-11-01_08-26-29.jpg", nil
+}
+
+func (this *TesseractHelper) pbcopy() {
+	// 将tesseract的识别结果塞到系统剪切板
+	this.commander.Run(fmt.Sprintf(`echo %s`, this.Result), "|", "pbcopy")
 }
 
 func (this *TesseractHelper) doTesseractInspect(newlyfile string) {
