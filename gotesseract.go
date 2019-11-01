@@ -35,6 +35,7 @@ func NewTesseractHelper(watchpath string) (*TesseractHelper){
 	}
 }
 
+// 懒得改名了 其实也没必要有返回值
 func (this *TesseractHelper) getNewlyFilename() (string, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -42,7 +43,7 @@ func (this *TesseractHelper) getNewlyFilename() (string, error) {
 	}
 	defer watcher.Close()
 
-	// 为了让主进程一直等待，实现go携程的运行流程。
+	// 为了让主进程一直等待，实现go协程的运行流程。
 	done := make(chan bool)
 	go func() {
 		for {
@@ -59,6 +60,7 @@ func (this *TesseractHelper) getNewlyFilename() (string, error) {
 			    	log.Println("newly add file: ", event.Name)
 			    	// 识别处理
 			    	filename := event.Name[8:]
+				    // 可以考虑用 go func(){}()的形式，不过好像没啥必要
 			    	this.doTesseractInspect(filename)
 			    	fmt.Println("识别结果为: ", this.output())
 				}
